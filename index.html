@@ -1,0 +1,1024 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>San Valentin - Camila</title>
+  <style>
+    :root {
+      --sky-top: #ffe8f2;
+      --sky-mid: #fff2f8;
+      --sky-bottom: #fffaf1;
+      --ground-1: #6f8968;
+      --ground-2: #4c6549;
+      --trunk-1: #6a4a34;
+      --trunk-2: #3e2a1f;
+      --branch: #4f3527;
+      --leaf-1: #a53b57;
+      --leaf-2: #7f2b43;
+      --text-main: #241f22;
+      --text-soft: #3e343a;
+      --panel: rgba(247, 247, 245, 0.82);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    body {
+      background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 45%, var(--sky-bottom));
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .scene {
+      width: min(980px, 100%);
+      min-height: 95vh;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 14px 34px rgba(20, 30, 18, 0.2);
+      background:
+        radial-gradient(1000px 300px at 50% -20%, rgba(255, 255, 255, 0.45), transparent 65%),
+        linear-gradient(180deg, #ffe7f1 0%, #fff2f8 55%, #fff8ef 100%);
+      display: block;
+      position: relative;
+      padding: 18px 12px 12px;
+      --line-opacity: 0;
+    }
+
+    .scene::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--ground-line-y, 70%);
+      height: 2px;
+      background: #000;
+      z-index: 1;
+      pointer-events: none;
+      opacity: var(--line-opacity);
+      transition: opacity 0.45s ease;
+    }
+
+    .intro-tap-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background: transparent;
+      touch-action: manipulation;
+    }
+
+    body.prelude .intro-tap-layer {
+      pointer-events: auto;
+    }
+
+    body.prelude .content-row {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    .content-row {
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .intro-heart {
+      position: absolute;
+      left: 50%;
+      top: 26%;
+      width: 84px;
+      height: 84px;
+      border: none;
+      background: linear-gradient(165deg, #ff4f79, #c91e4f);
+      transform: translate(-50%, 0) rotate(-45deg);
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 5;
+      box-shadow: 0 8px 22px rgba(128, 21, 56, 0.35);
+      animation: introFloat 2.2s ease-in-out infinite;
+      transition: border-radius 0.45s ease, transform 0.45s ease, box-shadow 0.45s ease, opacity 0.35s ease;
+      opacity: 0;
+      pointer-events: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .intro-heart::before,
+    .intro-heart::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: inherit;
+      transition: opacity 0.25s ease;
+    }
+
+    .intro-heart::before { top: -50%; left: 0; }
+    .intro-heart::after { top: 0; left: 50%; }
+
+    body.prelude .intro-heart {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .intro-heart.morph {
+      border-radius: 50%;
+      transform: translate(-50%, 0) rotate(0deg) scale(0.88);
+    }
+
+    .intro-heart.morph::before,
+    .intro-heart.morph::after {
+      opacity: 0;
+    }
+
+    .intro-heart.drop {
+      animation: introDrop 1.05s cubic-bezier(0.18, 0.78, 0.25, 1) forwards;
+      box-shadow: 0 3px 8px rgba(70, 18, 35, 0.25);
+    }
+
+    .intro-heart.done {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, var(--drop-distance, 280px)) scale(0.2);
+    }
+
+    @keyframes introFloat {
+      0%, 100% { transform: translate(-50%, -4px) rotate(-45deg); }
+      50% { transform: translate(-50%, 10px) rotate(-45deg); }
+    }
+
+    @keyframes introDrop {
+      0% { transform: translate(-50%, 0) rotate(0deg) scale(0.88); }
+      100% { transform: translate(-50%, var(--drop-distance, 280px)) rotate(0deg) scale(0.88); }
+    }
+
+    .content-row {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(250px, 0.95fr) minmax(360px, 1.25fr);
+      gap: 12px;
+      align-items: center;
+      min-height: calc(95vh - 52px);
+    }
+
+    body:not(.show-message) .message-panel {
+      opacity: 0;
+      transform: translateX(-24px);
+      pointer-events: none;
+    }
+
+    body.growing .tree-zone {
+      transform: translateX(-27%);
+    }
+
+    .message-panel {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-self: stretch;
+      padding: 8px 8px 8px 4px;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .title {
+      position: relative;
+      z-index: 5;
+      text-align: left;
+      margin: 0 0 14px;
+      max-width: 440px;
+      line-height: 1.32;
+      font-size: clamp(1rem, 2.9vw, 1.52rem);
+      color: #3a2731;
+      font-weight: 600;
+      text-wrap: balance;
+    }
+
+    .typed-text {
+      display: block;
+      min-height: 1em;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: normal;
+      max-width: 100%;
+    }
+
+    .type-char {
+      opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+
+    .type-char.show {
+      opacity: 1;
+    }
+
+    .type-caret {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 3px;
+      background: #3a2731;
+      vertical-align: -0.08em;
+      animation: blinkCaret 0.85s step-end infinite;
+      opacity: 0;
+    }
+
+    .type-caret.active {
+      opacity: 1;
+    }
+
+    @keyframes blinkCaret {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .tree-zone {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: min(590px, 66vh);
+      padding-top: 22px;
+      transition: transform 1.15s cubic-bezier(0.22, 0.75, 0.22, 1);
+    }
+
+    .tree-wrap {
+      position: relative;
+      z-index: 2;
+      width: min(560px, 97vw);
+      height: min(570px, 65vh);
+      transform-origin: center bottom;
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .tree-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .canopy {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .heart-leaf {
+      position: absolute;
+      width: var(--size, 22px);
+      height: var(--size, 22px);
+      transform: rotate(-45deg);
+      transform-origin: center center;
+      border-radius: 2px;
+      background: linear-gradient(165deg, var(--leaf-c1, var(--leaf-1)), var(--leaf-c2, var(--leaf-2)));
+      box-shadow: 0 2px 7px rgba(42, 10, 20, 0.23);
+      animation: leafSway var(--t, 3s) ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+    }
+
+    .heart-leaf.appear {
+      animation: none;
+      opacity: 0;
+      transform: rotate(-45deg) scale(0.2);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .heart-leaf.appear.show {
+      opacity: 1;
+      transform: rotate(-45deg) scale(1);
+    }
+
+    .heart-leaf::before,
+    .heart-leaf::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: inherit;
+    }
+
+    .heart-leaf::before { top: -52%; left: 0; }
+    .heart-leaf::after { top: 0; left: 52%; }
+
+    @keyframes leafSway {
+      0%, 100% { transform: rotate(-45deg) translateY(0); }
+      50% { transform: rotate(-45deg) translateY(-3px); }
+    }
+
+    .heart-leaf.falling {
+      animation: leafFall var(--fall-dur, 2.8s) ease-in forwards;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .heart-leaf.fallen {
+      animation: none;
+      z-index: 1;
+      opacity: 0.9;
+      pointer-events: none;
+      filter: saturate(0.85);
+    }
+
+    @keyframes leafFall {
+      0% { transform: rotate(-45deg) translate(0, 0); opacity: 1; }
+      100% { transform: rotate(var(--fall-rot, 240deg)) translate(var(--fall-x, 0px), var(--fall-y, 220px)); opacity: 0.92; }
+    }
+
+    .timer-card {
+      position: relative;
+      z-index: 3;
+      margin: 150px 0 0;
+      width: 100%;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      text-align: left;
+      padding: 0;
+      backdrop-filter: none;
+    }
+
+    .timer-intro {
+      margin: 0 0 6px;
+      color: var(--text-soft);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: clamp(0.9rem, 2.7vw, 1.1rem);
+      font-weight: 700;
+    }
+
+    #counter {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: clamp(0.84rem, 2.45vw, 1.1rem);
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .date-note {
+      margin: 6px 0 0;
+      color: #524c4a;
+      font-size: clamp(0.73rem, 2.1vw, 0.9rem);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    @media (max-width: 640px) {
+      .scene { border-radius: 12px; padding: 11px 8px; }
+      .content-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        min-height: auto;
+      }
+      body.growing .tree-zone { transform: translateX(0); }
+      .message-panel { padding: 0; }
+      .tree-zone { min-height: min(500px, 62vh); padding-top: 34px; }
+      .tree-wrap { height: min(500px, 62vh); }
+      .title {
+        font-size: clamp(0.93rem, 3.8vw, 1.2rem);
+        text-align: center;
+        max-width: none;
+      }
+      .timer-card { margin-top: 36px; }
+      .timer-card { text-align: center; }
+    }
+  </style>
+</head>
+<body class="prelude">
+  <main class="scene">
+    <div class="intro-tap-layer" id="introTapLayer" aria-hidden="true"></div>
+    <button class="intro-heart" id="introHeart" aria-label="Comenzar"></button>
+    <section class="content-row">
+      <div class="message-panel">
+        <h1 class="title">
+          <span id="typedMessage" class="typed-text" data-full-text="Para Camila el amor de mi vida, si puediera elegir un lugar seguro seria contigo, eres lo mas bonito que tengo. TE AMO"><span id="typedCaret" class="type-caret" aria-hidden="true"></span></span>
+        </h1>
+
+        <section class="timer-card">
+          <p class="timer-intro">Mi amor por ti comenzo hace:</p>
+          <p id="counter">0 dias, 0 horas, 0 minutos y 0 segundos</p>
+        </section>
+      </div>
+
+      <section class="tree-zone" aria-label="Arbol de corazones">
+        <div class="tree-wrap" id="treeWrap">
+          <canvas class="tree-canvas" id="treeCanvas" aria-hidden="true"></canvas>
+          <div class="canopy" id="canopy"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const scene = document.querySelector('.scene');
+    const treeZone = document.querySelector('.tree-zone');
+    const introHeart = document.getElementById('introHeart');
+    const introTapLayer = document.getElementById('introTapLayer');
+    const canopy = document.getElementById('canopy');
+    const treeWrap = document.getElementById('treeWrap');
+    const treeCanvas = document.getElementById('treeCanvas');
+    const counter = document.getElementById('counter');
+    const typedMessage = document.getElementById('typedMessage');
+    const typedCaret = document.getElementById('typedCaret');
+    const ctx = treeCanvas.getContext('2d');
+    const leaves = [];
+    const TREE_SEED = 17012026;
+    let sequenceState = 'prelude';
+    let fallIntervalId = null;
+    let introStarted = false;
+    const LEAF_PALETTE_STRONG = [
+      ['#ff3b3b', '#d00000'], // rojo rojo
+      ['#ff2a2a', '#b30000'], // rojo puro fuerte
+      ['#e94a67', '#b73251'], // rojo frambuesa
+      ['#c73a4f', '#96273f'], // rojo intenso
+      ['#b53754', '#8a2a44'], // rojo vino
+      ['#9f2d46', '#742238'], // vino
+      ['#8c203c', '#61182c'], // vino oscuro
+      ['#d86a7a', '#b14562'], // rojo claro
+      ['#ff6b8e', '#d94872']  // rosa rojizo
+    ];
+    const LEAF_PALETTE_PASTEL = [
+      ['#ffd9c7', '#ffbfa8'], // durazno pastel claro
+      ['#ffe5d6', '#ffcdb7'], // durazno muy claro
+      ['#f3b2c8', '#de8eaf']  // rosa claro
+    ];
+
+    function mulberry32(seed) {
+      let t = seed >>> 0;
+      return function next() {
+        t += 0x6D2B79F5;
+        let n = Math.imul(t ^ (t >>> 15), 1 | t);
+        n ^= n + Math.imul(n ^ (n >>> 7), 61 | n);
+        return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function drawSegment(x, y, len, angle, width, color, rng) {
+      const x2 = x + Math.cos(angle) * len;
+      const y2 = y - Math.sin(angle) * len;
+      const bend = (rng() - 0.5) * len * 0.28;
+      const ctrlX = x + Math.cos(angle + (rng() - 0.5) * 0.5) * len * 0.45 + bend * 0.16;
+      const ctrlY = y - Math.sin(angle + (rng() - 0.5) * 0.5) * len * 0.45;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(ctrlX, ctrlY, x2, y2);
+      ctx.stroke();
+
+      return { x: x2, y: y2 };
+    }
+
+    function drawTreeStage(options = {}) {
+      const trunkProgress = Math.max(0, Math.min(1, options.trunkProgress ?? 1));
+      const branchProgress = Math.max(0, Math.min(1, options.branchProgress ?? 1));
+      const rng = mulberry32(TREE_SEED);
+      const dpr = window.devicePixelRatio || 1;
+      const w = treeWrap.clientWidth;
+      const h = treeWrap.clientHeight;
+      treeCanvas.width = Math.floor(w * dpr);
+      treeCanvas.height = Math.floor(h * dpr);
+      treeCanvas.style.width = w + 'px';
+      treeCanvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const tips = [];
+      const nodes = [];
+      const trunkAndBranchBase = '#46382c';
+      const baseX = w * 0.5;
+      const baseY = h * 0.98;
+      const trunkLen = h * 0.3 * trunkProgress;
+      // Cleaner trunk silhouette using a single tapered body.
+      const trunkTopY = baseY - trunkLen * 0.97;
+      ctx.fillStyle = trunkAndBranchBase;
+      ctx.beginPath();
+      ctx.moveTo(baseX - 14, baseY);
+      ctx.bezierCurveTo(baseX - 17, baseY - trunkLen * 0.32, baseX - 10, baseY - trunkLen * 0.72, baseX - 7, trunkTopY + 8);
+      ctx.bezierCurveTo(baseX - 5, trunkTopY + 2, baseX + 5, trunkTopY + 2, baseX + 7, trunkTopY + 8);
+      ctx.bezierCurveTo(baseX + 10, baseY - trunkLen * 0.72, baseX + 17, baseY - trunkLen * 0.32, baseX + 14, baseY);
+      ctx.closePath();
+      ctx.fill();
+
+      const trunkEnd = { x: baseX, y: trunkTopY + 8 };
+      if (branchProgress <= 0) return { tips, nodes, w, h, trunkEnd };
+
+      const maxLevels = 6;
+      const depthFloat = branchProgress * maxLevels;
+      const fullLevels = Math.floor(depthFloat);
+      const partialLevel = depthFloat - fullLevels;
+
+      function branch(x, y, len, angle, width, level) {
+        if (level > fullLevels + 1) return;
+        let lenFactor = 1;
+        if (level === fullLevels + 1) {
+          if (partialLevel <= 0) return;
+          lenFactor = partialLevel;
+        }
+
+        const effectiveLen = len * lenFactor;
+        const tone = Math.max(28, 62 - (maxLevels - level) * 3);
+        const color = `rgb(${tone + 26}, ${tone + 12}, ${tone})`;
+        const end = drawSegment(x, y, effectiveLen, angle, width, color, rng);
+        nodes.push({ x: end.x, y: end.y, depth: level, width });
+
+        if (lenFactor < 1 || level >= maxLevels || effectiveLen < 10) {
+          tips.push(end);
+          return;
+        }
+
+        const mainCount = level < 4 ? 2 : (rng() > 0.68 ? 3 : 2);
+        const spread = level < 3 ? 0.56 : 0.74;
+        for (let i = 0; i < mainCount; i++) {
+          const offset = i - (mainCount - 1) / 2;
+          const childAngle = angle + offset * spread + (rng() - 0.5) * 0.22;
+          const childLen = len * (0.68 + rng() * 0.12);
+          const childWidth = Math.max(1.1, width * (0.67 + rng() * 0.07));
+          branch(end.x, end.y, childLen, childAngle, childWidth, level + 1);
+        }
+
+        if (level < 4 && rng() > 0.45) {
+          const forwardAngle = angle + (rng() - 0.5) * 0.2;
+          const forwardLen = len * (0.54 + rng() * 0.08);
+          const forwardWidth = Math.max(1, width * 0.58);
+          branch(end.x, end.y, forwardLen, forwardAngle, forwardWidth, level + 1);
+        }
+      }
+
+      branch(trunkEnd.x - 2, trunkEnd.y + 8, h * 0.17, Math.PI / 2 + 0.35, 12, 1);
+      branch(trunkEnd.x + 2, trunkEnd.y + 8, h * 0.17, Math.PI / 2 - 0.35, 12, 1);
+      branch(trunkEnd.x, trunkEnd.y + 4, h * 0.18, Math.PI / 2, 13, 1);
+      branch(trunkEnd.x - 1, trunkEnd.y + 2, h * 0.155, Math.PI / 2 + 0.12, 10.5, 2);
+      branch(trunkEnd.x + 1, trunkEnd.y + 2, h * 0.155, Math.PI / 2 - 0.12, 10.5, 2);
+      return { tips, nodes, w, h, trunkEnd };
+    }
+
+    function buildLeaves(treeData, options = {}) {
+      const gradual = options.gradual === true;
+      canopy.innerHTML = '';
+      leaves.length = 0;
+      const w = treeWrap.clientWidth;
+      const h = treeWrap.clientHeight;
+      const { tips, nodes } = treeData;
+      const usableTips = tips.filter((t) => t.y > h * 0.1 && t.y < h * 0.9);
+      if (!usableTips.length) return;
+
+      const heartCx = w * 0.5;
+      const heartCy = h * 0.39;
+      const heartSx = w * 0.29;
+      const heartSy = h * 0.24;
+      const heartValue = (x, y, pad = 0) => {
+        const hx = (x - heartCx) / (heartSx + pad);
+        const hy = (heartCy - y) / (heartSy + pad);
+        return Math.pow(hx * hx + hy * hy - 1, 3) - (hx * hx * hy * hy * hy);
+      };
+      const inHeart = (x, y, pad = 0) => {
+        return heartValue(x, y, pad) <= 0;
+      };
+
+      const shuffled = (arr) => [...arr].sort(() => Math.random() - 0.5);
+      const pickLeafColors = () => {
+        // Keep pastel presence low so reds/wines dominate.
+        if (Math.random() < 0.08) {
+          return LEAF_PALETTE_PASTEL[Math.floor(Math.random() * LEAF_PALETTE_PASTEL.length)];
+        }
+        return LEAF_PALETTE_STRONG[Math.floor(Math.random() * LEAF_PALETTE_STRONG.length)];
+      };
+      const placeLeaf = (tip) => {
+        const leaf = document.createElement('span');
+        leaf.className = 'heart-leaf';
+        const size = 6 + Math.random() * 8;
+        const colors = pickLeafColors();
+        const jitterX = tip.edge ? (Math.random() * 8 - 4) : (Math.random() * 22 - 11);
+        const jitterY = tip.edge ? (Math.random() * 10 - 5) : (Math.random() * 16 - 8);
+        let x = tip.x + jitterX;
+        let y = tip.y + jitterY;
+        if (!inHeart(x, y, 8) && !tip.edge) {
+          x = heartCx + (Math.random() * 2 - 1) * heartSx * 0.85;
+          y = heartCy + (Math.random() * 2 - 1) * heartSy * 0.85;
+        }
+        if (!inHeart(x, y, 8) && tip.edge) {
+          // Keep forced edge points on the corresponding side.
+          x = tip.x;
+          y = tip.y;
+        }
+        const clampedX = Math.max(0, Math.min(w - size, x - size * 0.5));
+        // Avoid leaves touching the very top edge.
+        const minY = h * 0.08;
+        const clampedY = Math.max(minY, Math.min(h - size - 2, y - size * 0.5));
+
+        leaf.style.setProperty('--size', size.toFixed(0) + 'px');
+        leaf.style.setProperty('--leaf-c1', colors[0]);
+        leaf.style.setProperty('--leaf-c2', colors[1]);
+        leaf.style.left = clampedX.toFixed(1) + 'px';
+        leaf.style.top = clampedY.toFixed(1) + 'px';
+        leaf.style.setProperty('--d', (Math.random() * 2.4).toFixed(2) + 's');
+        leaf.style.setProperty('--t', (2.2 + Math.random() * 2.6).toFixed(2) + 's');
+        if (gradual) leaf.classList.add('appear');
+        canopy.appendChild(leaf);
+        leaves.push({ el: leaf, fallen: false, falling: false });
+      };
+
+      const targetLeaves = Math.min(460, Math.max(360, Math.floor(usableTips.length * 2.8)));
+
+      const anchorTips = usableTips.filter((t) => inHeart(t.x, t.y, 12));
+      const anchorNodes = nodes.filter((n) =>
+        n.depth >= 2 && n.depth <= 5 &&
+        n.y > h * 0.16 && n.y < h * 0.78 &&
+        inHeart(n.x, n.y, 14)
+      );
+      const topHeart = anchorTips.filter((p) => p.y < h * 0.38);
+      const centerHeart = [...anchorTips, ...anchorNodes].filter((p) => p.y >= h * 0.38 && p.y < h * 0.56);
+      const lowerHeart = [...anchorTips, ...anchorNodes].filter((p) => p.y >= h * 0.56 && p.y < h * 0.75);
+      const innerCore = [...anchorTips, ...anchorNodes].filter((p) => p.x > w * 0.4 && p.x < w * 0.6);
+
+      const syntheticHeart = [];
+      let guard = 0;
+      while (syntheticHeart.length < 600 && guard < 6000) {
+        guard += 1;
+        const x = heartCx + (Math.random() * 2 - 1) * heartSx * 1.16;
+        const y = heartCy + (Math.random() * 2 - 1) * heartSy * 1.05;
+        if (inHeart(x, y, 0)) syntheticHeart.push({ x, y });
+      }
+      const syntheticTop = syntheticHeart.filter((p) => p.y < h * 0.37);
+      const syntheticCenter = syntheticHeart.filter((p) => p.y >= h * 0.37 && p.y < h * 0.58);
+      const syntheticEdge = syntheticHeart.filter((p) => {
+        const v = heartValue(p.x, p.y, 0);
+        return v > -0.14 && v < 0.06;
+      });
+      const lobeEdge = syntheticHeart.filter((p) => {
+        const yn = p.y / h;
+        const xn = p.x / w;
+        return yn > 0.2 && yn < 0.52 && (xn < 0.33 || xn > 0.67);
+      });
+      const leftLowerEdge = syntheticHeart.filter((p) => {
+        const yn = p.y / h;
+        const xn = p.x / w;
+        const v = heartValue(p.x, p.y, 0);
+        return xn < 0.41 && yn > 0.5 && yn < 0.73 && v > -0.12 && v < 0.04;
+      });
+      const apexCap = syntheticHeart.filter((p) => {
+        const yn = p.y / h;
+        const xn = p.x / w;
+        return yn > 0.1 && yn < 0.3 && xn > 0.34 && xn < 0.66;
+      });
+      const topEdgeBoost = [];
+      for (let i = 0; i < 120; i++) {
+        const x = heartCx + (Math.random() * 2 - 1) * heartSx * 0.62;
+        const y = heartCy - heartSy * (0.72 + Math.random() * 0.3);
+        if (inHeart(x, y, 18)) topEdgeBoost.push({ x, y });
+      }
+      const sideExtremeLeft = syntheticHeart.filter((p) => {
+        const yn = p.y / h;
+        const xn = p.x / w;
+        const v = heartValue(p.x, p.y, 0);
+        return xn < 0.35 && yn > 0.22 && yn < 0.75 && v > -0.16 && v < 0.11;
+      });
+      const sideExtremeRight = syntheticHeart.filter((p) => {
+        const yn = p.y / h;
+        const xn = p.x / w;
+        const v = heartValue(p.x, p.y, 0);
+        return xn > 0.65 && yn > 0.22 && yn < 0.75 && v > -0.16 && v < 0.11;
+      });
+      const sideEdgeBoost = [];
+      for (let i = 0; i < 140; i++) {
+        const isLeft = i % 2 === 0;
+        const xBase = isLeft ? heartCx - heartSx * (0.96 + Math.random() * 0.3) : heartCx + heartSx * (0.96 + Math.random() * 0.3);
+        const yBase = heartCy + (Math.random() * 2 - 1) * heartSy * 0.68;
+        if (inHeart(xBase, yBase, 20)) sideEdgeBoost.push({ x: xBase, y: yBase });
+      }
+      const sideFarLeft = [];
+      const sideFarRight = [];
+      for (let i = 0; i < 200; i++) {
+        const y = heartCy + (Math.random() * 2 - 1) * heartSy * 0.76;
+        const xL = heartCx - heartSx * (1.1 + Math.random() * 0.34);
+        const xR = heartCx + heartSx * (1.1 + Math.random() * 0.34);
+        if (inHeart(xL, y, 34)) sideFarLeft.push({ x: xL, y, edge: true });
+        if (inHeart(xR, y, 34)) sideFarRight.push({ x: xR, y, edge: true });
+      }
+      const ringPoints = [];
+      for (let i = 0; i < 130; i++) {
+        const t = (i / 130) * Math.PI * 2;
+        const xh = 16 * Math.pow(Math.sin(t), 3);
+        const yh = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        const x = heartCx + (xh / 17) * heartSx * (0.98 + Math.random() * 0.12);
+        const y = heartCy - (yh / 17) * heartSy * (0.98 + Math.random() * 0.12);
+        if (inHeart(x, y, 5)) ringPoints.push({ x, y });
+      }
+
+      const selected = [];
+      const used = new Set();
+      const takeFrom = (pool, count) => {
+        const items = shuffled(pool);
+        for (let i = 0; i < items.length && count > 0; i++) {
+          const tip = items[i];
+          if (used.has(tip)) continue;
+          used.add(tip);
+          selected.push(tip);
+          count -= 1;
+        }
+      };
+
+      takeFrom(sideFarLeft, Math.floor(targetLeaves * 0.12));
+      takeFrom(sideFarRight, Math.floor(targetLeaves * 0.12));
+      takeFrom(sideEdgeBoost, Math.floor(targetLeaves * 0.1));
+      takeFrom(sideExtremeLeft, Math.floor(targetLeaves * 0.08));
+      takeFrom(sideExtremeRight, Math.floor(targetLeaves * 0.08));
+      takeFrom(leftLowerEdge, Math.floor(targetLeaves * 0.06));
+      takeFrom(ringPoints, Math.floor(targetLeaves * 0.08));
+      takeFrom(topEdgeBoost, Math.floor(targetLeaves * 0.07));
+      takeFrom(apexCap, Math.floor(targetLeaves * 0.06));
+      takeFrom(syntheticEdge, Math.floor(targetLeaves * 0.06));
+      takeFrom(lobeEdge, Math.floor(targetLeaves * 0.06));
+      takeFrom(syntheticTop, Math.floor(targetLeaves * 0.06));
+      takeFrom(topHeart, Math.floor(targetLeaves * 0.06));
+      takeFrom(syntheticCenter, Math.floor(targetLeaves * 0.13));
+      takeFrom(innerCore, Math.floor(targetLeaves * 0.1));
+      takeFrom(centerHeart, Math.floor(targetLeaves * 0.08));
+      takeFrom(lowerHeart, Math.floor(targetLeaves * 0.04));
+      takeFrom(anchorNodes, Math.floor(targetLeaves * 0.03));
+      if (selected.length < targetLeaves) takeFrom(syntheticHeart, targetLeaves - selected.length);
+
+      for (let i = 0; i < selected.length; i++) placeLeaf(selected[i]);
+      if (!gradual) return 0;
+
+      let maxDelay = 0;
+      for (let i = 0; i < leaves.length; i++) {
+        const entry = leaves[i];
+        const delay = 80 + Math.random() * 1500;
+        if (delay > maxDelay) maxDelay = delay;
+        setTimeout(() => {
+          entry.el.classList.add('show');
+          setTimeout(() => entry.el.classList.remove('appear', 'show'), 360);
+        }, delay);
+      }
+      return maxDelay + 420;
+    }
+
+    function rebuildTreeScene() {
+      const treeData = drawTreeStage({ trunkProgress: 1, branchProgress: 1 });
+      buildLeaves(treeData);
+      syncGroundLine();
+      scene.style.setProperty('--line-opacity', '1');
+      sequenceState = 'leaves';
+    }
+
+    function syncGroundLine() {
+      const sceneRect = scene.getBoundingClientRect();
+      const treeZoneRect = treeZone.getBoundingClientRect();
+      const y = treeZoneRect.bottom - sceneRect.top - 20;
+      scene.style.setProperty('--ground-line-y', `${y.toFixed(1)}px`);
+    }
+
+    function dropOneLeaf() {
+      const available = leaves.filter((item) => !item.fallen && !item.falling);
+      if (!available.length) return;
+      const minRemainingOnTree = Math.max(300, Math.floor(leaves.length * 0.92));
+      if (available.length <= minRemainingOnTree) return;
+
+      // Prefer dropping leaves from lower zones to keep the upper canopy visually full.
+      const weighted = available.map((item) => {
+        const y = parseFloat(item.el.style.top || '0');
+        const yn = y / Math.max(1, treeWrap.clientHeight);
+        const weight = 0.25 + yn * 1.35;
+        return { item, weight };
+      });
+      const sum = weighted.reduce((acc, w) => acc + w.weight, 0);
+      let r = Math.random() * sum;
+      let leaf = weighted[0].item;
+      for (let i = 0; i < weighted.length; i++) {
+        r -= weighted[i].weight;
+        if (r <= 0) {
+          leaf = weighted[i].item;
+          break;
+        }
+      }
+      leaf.falling = true;
+      const element = leaf.el;
+      const leafRect = element.getBoundingClientRect();
+      const canopyRect = canopy.getBoundingClientRect();
+      const startX = leafRect.left - canopyRect.left;
+      const startY = leafRect.top - canopyRect.top;
+      const size = leafRect.width;
+      const groundY = treeWrap.clientHeight - 14 - size;
+      const driftX = (Math.random() * 120) - 60;
+      const dropY = Math.max(groundY - startY + (Math.random() * 16 - 8), 40);
+      const duration = 2.6 + Math.random() * 2.1;
+      const finalRotation = (Math.random() * 260) - 130;
+
+      element.style.setProperty('--fall-x', driftX.toFixed(1) + 'px');
+      element.style.setProperty('--fall-y', dropY.toFixed(1) + 'px');
+      element.style.setProperty('--fall-dur', duration.toFixed(2) + 's');
+      element.style.setProperty('--fall-rot', finalRotation.toFixed(0) + 'deg');
+      element.classList.add('falling');
+
+      element.addEventListener('animationend', () => {
+        element.classList.remove('falling');
+        element.classList.add('fallen');
+        element.style.left = (startX + driftX).toFixed(1) + 'px';
+        element.style.top = (startY + dropY).toFixed(1) + 'px';
+        element.style.transform = `rotate(${finalRotation.toFixed(0)}deg)`;
+        leaf.falling = false;
+        leaf.fallen = true;
+      }, { once: true });
+    }
+
+    function startLeafFall() {
+      if (fallIntervalId) return;
+      fallIntervalId = setInterval(() => {
+        dropOneLeaf();
+        if (Math.random() > 0.9) dropOneLeaf();
+      }, 520);
+    }
+
+    function animatePhase(durationMs, onFrame) {
+      return new Promise((resolve) => {
+        const start = performance.now();
+        function step(now) {
+          const t = Math.min((now - start) / durationMs, 1);
+          onFrame(t);
+          if (t < 1) requestAnimationFrame(step);
+          else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function typeMessageEffect() {
+      if (!typedMessage || !typedCaret) return;
+      const fullText = typedMessage.dataset.fullText || '';
+      typedMessage.textContent = '';
+      const chars = [];
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < fullText.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'type-char';
+        const ch = fullText[i];
+        span.textContent = ch;
+        fragment.appendChild(span);
+        chars.push({ el: span, ch });
+      }
+      typedMessage.appendChild(fragment);
+      typedMessage.appendChild(typedCaret);
+      typedCaret.classList.add('active');
+      for (let i = 0; i < chars.length; i++) {
+        chars[i].el.classList.add('show');
+        chars[i].el.after(typedCaret);
+        const ch = chars[i].ch;
+        const delay = (ch === ' ' ? 14 : 26) + Math.floor(Math.random() * 16);
+        await sleep(delay);
+      }
+      await sleep(220);
+      typedCaret.classList.remove('active');
+    }
+
+    async function beginGrowthSequence() {
+      sequenceState = 'trunk';
+      document.body.classList.remove('prelude');
+      document.body.classList.remove('show-message');
+      document.body.classList.add('growing');
+      scene.style.setProperty('--line-opacity', '1');
+      await animatePhase(1300, (p) => {
+        drawTreeStage({ trunkProgress: p, branchProgress: 0 });
+      });
+      sequenceState = 'branches';
+      let finalTreeData = null;
+      await animatePhase(1900, (p) => {
+        finalTreeData = drawTreeStage({ trunkProgress: 1, branchProgress: p });
+      });
+      sequenceState = 'leaves';
+      const revealMs = buildLeaves(finalTreeData || drawTreeStage({ trunkProgress: 1, branchProgress: 1 }), { gradual: true });
+      await new Promise((resolve) => setTimeout(resolve, revealMs));
+      document.body.classList.remove('growing');
+      requestAnimationFrame(() => document.body.classList.add('show-message'));
+      await sleep(120);
+      await typeMessageEffect();
+      startLeafFall();
+    }
+
+    function startIntroSequence() {
+      if (!introHeart || sequenceState !== 'prelude' || introStarted) return;
+      introStarted = true;
+      syncGroundLine();
+      introHeart.classList.add('morph');
+      setTimeout(() => {
+        const heartRect = introHeart.getBoundingClientRect();
+        const sceneRect = scene.getBoundingClientRect();
+        const lineY = parseFloat(getComputedStyle(scene).getPropertyValue('--ground-line-y')) || (sceneRect.height * 0.72);
+        const currentY = heartRect.top - sceneRect.top;
+        const dropDistance = Math.max(40, lineY - currentY - heartRect.height * 0.56);
+        introHeart.style.setProperty('--drop-distance', `${dropDistance.toFixed(1)}px`);
+        introHeart.classList.add('drop');
+      }, 430);
+
+      introHeart.addEventListener('animationend', async () => {
+        introHeart.classList.add('done');
+        await beginGrowthSequence();
+      }, { once: true });
+    }
+
+    // Prelude state: only floating heart visible.
+    drawTreeStage({ trunkProgress: 0, branchProgress: 0 });
+    syncGroundLine();
+    scene.style.setProperty('--line-opacity', '0');
+    if (introHeart) {
+      const triggerIntro = () => startIntroSequence();
+      introHeart.addEventListener('pointerdown', triggerIntro, { passive: true });
+      introHeart.addEventListener('touchstart', triggerIntro, { passive: true });
+      introHeart.addEventListener('click', triggerIntro, { passive: true });
+
+      // Mobile fallback: if the touch starts over the heart, start anyway.
+      const globalTouchStart = (ev) => {
+        if (introStarted || sequenceState !== 'prelude') return;
+        const touch = ev.touches && ev.touches[0];
+        if (!touch) return;
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el === introHeart || introHeart.contains(el)) startIntroSequence();
+      };
+      document.addEventListener('touchstart', globalTouchStart, { passive: true });
+    }
+
+    if (introTapLayer) {
+      const triggerIntroLayer = () => startIntroSequence();
+      introTapLayer.addEventListener('pointerdown', triggerIntroLayer, { passive: true });
+      introTapLayer.addEventListener('touchstart', triggerIntroLayer, { passive: true });
+      introTapLayer.addEventListener('click', triggerIntroLayer, { passive: true });
+    }
+
+    // iPhone/Safari robust fallback: first gesture anywhere starts the intro.
+    const globalStartOnFirstGesture = () => {
+      startIntroSequence();
+      window.removeEventListener('pointerdown', globalStartOnFirstGesture, true);
+      window.removeEventListener('touchstart', globalStartOnFirstGesture, true);
+      window.removeEventListener('click', globalStartOnFirstGesture, true);
+    };
+    window.addEventListener('pointerdown', globalStartOnFirstGesture, { capture: true, passive: true });
+    window.addEventListener('touchstart', globalStartOnFirstGesture, { capture: true, passive: true });
+    window.addEventListener('click', globalStartOnFirstGesture, { capture: true, passive: true });
+
+    // Auto-start after 3 seconds in any device if user interaction didn't fire.
+    setTimeout(() => {
+      if (!introStarted && sequenceState === 'prelude') startIntroSequence();
+    }, 3000);
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (sequenceState === 'prelude') {
+          syncGroundLine();
+          return;
+        }
+        rebuildTreeScene();
+        syncGroundLine();
+      }, 180);
+    });
+
+    const startDate = new Date(2025, 10, 7, 0, 0, 0, 0);
+    function updateCounter() {
+      const now = new Date();
+      let diff = now - startDate;
+      if (diff < 0) diff = 0;
+      const dayMs = 86400000;
+      const hourMs = 3600000;
+      const minuteMs = 60000;
+      const secondMs = 1000;
+      const days = Math.floor(diff / dayMs);
+      diff %= dayMs;
+      const hours = Math.floor(diff / hourMs);
+      diff %= hourMs;
+      const minutes = Math.floor(diff / minuteMs);
+      diff %= minuteMs;
+      const seconds = Math.floor(diff / secondMs);
+      counter.textContent = `${days} dias, ${hours} horas, ${minutes} minutos y ${seconds} segundos`;
+    }
+
+    updateCounter();
+    setInterval(updateCounter, 33);
+  </script>
+</body>
+</html>
