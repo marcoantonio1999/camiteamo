@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para Camila · GSAP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-1: #1a0612;
+      --bg-2: #2b0a1f;
+      --bg-3: #3a0d27;
+      --accent: #ff4f7d;
+      --accent-2: #ff7aa2;
+      --accent-soft: #ffd1de;
+      --gold: #ffd9a8;
+      --text: #fff3f6;
+      --text-soft: #f3c9d4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+      background: radial-gradient(120% 80% at 50% 0%, var(--bg-3) 0%, var(--bg-2) 45%, var(--bg-1) 100%);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stars,
+    .bokeh,
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .stars { z-index: 0; }
+    .bokeh { z-index: 1; }
+    .vignette {
+      z-index: 2;
+      background:
+        radial-gradient(60% 60% at 50% 35%, transparent 0%, rgba(8, 2, 8, 0.55) 100%),
+        radial-gradient(120% 120% at 50% 100%, rgba(255, 79, 125, 0.08) 0%, transparent 60%);
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: #fff;
+      opacity: 0.6;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+    }
+
+    .bokeh-dot {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 153, 184, 0.55), rgba(255, 79, 125, 0));
+      filter: blur(1px);
+    }
+
+    .stage {
+      position: relative;
+      z-index: 3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px 60px;
+    }
+
+    /* INTRO ------------------------------------------------------- */
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 28px;
+      background: radial-gradient(60% 60% at 50% 50%, rgba(255, 79, 125, 0.18), transparent 70%);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .intro-heart {
+      width: 140px;
+      height: 140px;
+      position: relative;
+      transform: rotate(-45deg);
+      filter: drop-shadow(0 0 30px rgba(255, 79, 125, 0.55));
+    }
+
+    .intro-heart::before,
+    .intro-heart::after,
+    .intro-heart .ihb {
+      content: "";
+      position: absolute;
+      background: linear-gradient(160deg, #ff5a85, #c8204c);
+      border-radius: 8px;
+    }
+    .intro-heart .ihb {
+      inset: 0;
+      border-radius: 12px;
+    }
+    .intro-heart::before {
+      width: 100%; height: 100%;
+      top: -50%; left: 0;
+      border-radius: 50%;
+      background: inherit;
+      background: linear-gradient(160deg, #ff5a85, #c8204c);
+    }
+    .intro-heart::after {
+      width: 100%; height: 100%;
+      top: 0; left: 50%;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #ff5a85, #c8204c);
+    }
+
+    .intro-hint {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(1.1rem, 3vw, 1.45rem);
+      color: var(--text-soft);
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+    }
+
+    .intro-hint span {
+      display: inline-block;
+      will-change: transform, opacity;
+    }
+
+    /* MAIN ------------------------------------------------------- */
+    .scene {
+      width: min(1080px, 100%);
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 28px;
+      align-items: center;
+      opacity: 0;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding: 10px 4px;
+    }
+
+    .eyebrow {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+      color: var(--accent-2);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0;
+    }
+
+    .headline {
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 500;
+      font-size: clamp(1.6rem, 4vw, 2.5rem);
+      line-height: 1.18;
+      color: #fff;
+      margin: 0;
+      letter-spacing: 0.005em;
+      text-wrap: balance;
+    }
+
+    .headline .word {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: bottom;
+    }
+    .headline .word-inner {
+      display: inline-block;
+      will-change: transform;
+    }
+
+    .headline em {
+      color: var(--accent-2);
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .body-text {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1rem, 2.2vw, 1.18rem);
+      line-height: 1.55;
+      color: var(--text-soft);
+      max-width: 460px;
+      margin: 0;
+    }
+
+    .body-text .char { display: inline-block; will-change: transform, opacity; }
+
+    .counter-card {
+      margin-top: 6px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255, 79, 125, 0.16), rgba(255, 121, 162, 0.05));
+      border: 1px solid rgba(255, 209, 222, 0.18);
+      backdrop-filter: blur(6px);
+      max-width: 460px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .counter-label {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      color: var(--accent-soft);
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .counter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .counter-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .counter-num {
+      font-family: "Inter", sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.3rem, 3vw, 1.7rem);
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+
+    .counter-unit {
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+      opacity: 0.75;
+    }
+
+    .signature {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      color: var(--accent-2);
+      opacity: 0;
+      letter-spacing: 0.05em;
+    }
+
+    /* TREE ------------------------------------------------------- */
+    .tree-zone {
+      position: relative;
+      height: min(620px, 78vh);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .tree-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .tree-svg path {
+      fill: none;
+      stroke: #5a3320;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ground {
+      position: absolute;
+      left: 6%;
+      right: 6%;
+      bottom: 18px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 209, 222, 0.55) 30%, rgba(255, 209, 222, 0.55) 70%, transparent);
+      transform-origin: center;
+      transform: scaleX(0);
+    }
+
+    .bloom {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      transform-origin: center;
+      transform: translate(-50%, -50%) rotate(-45deg) scale(0);
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+    .bloom::before,
+    .bloom::after,
+    .bloom .b {
+      content: "";
+      position: absolute;
+      background: linear-gradient(160deg, var(--c1, #ff5a85), var(--c2, #b62049));
+      box-shadow: 0 2px 10px rgba(255, 79, 125, 0.35);
+    }
+    .bloom .b {
+      inset: 0;
+      border-radius: 4px;
+    }
+    .bloom::before {
+      width: 100%; height: 100%;
+      top: -50%; left: 0;
+      border-radius: 50%;
+      background: inherit;
+    }
+    .bloom::after {
+      width: 100%; height: 100%;
+      top: 0; left: 50%;
+      border-radius: 50%;
+      background: inherit;
+    }
+
+    .bloom.fallen {
+      filter: saturate(0.7) brightness(0.9);
+    }
+
+    .floating-heart {
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      transform: rotate(-45deg);
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+    }
+    .floating-heart::before,
+    .floating-heart::after,
+    .floating-heart .fb {
+      content: "";
+      position: absolute;
+      background: var(--fc, #ff7aa2);
+      box-shadow: 0 0 8px rgba(255, 122, 162, 0.4);
+    }
+    .floating-heart .fb { inset: 0; border-radius: 3px; }
+    .floating-heart::before {
+      width: 100%; height: 100%;
+      top: -50%; left: 0; border-radius: 50%;
+      background: var(--fc, #ff7aa2);
+    }
+    .floating-heart::after {
+      width: 100%; height: 100%;
+      top: 0; left: 50%; border-radius: 50%;
+      background: var(--fc, #ff7aa2);
+    }
+
+    @media (max-width: 760px) {
+      .scene {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .tree-zone {
+        order: -1;
+        height: min(440px, 52vh);
+      }
+      .panel {
+        padding: 0 6px 24px;
+      }
+      .stage {
+        padding: 30px 14px 50px;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars" aria-hidden="true"></div>
+  <div class="bokeh" id="bokeh" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="intro" id="intro" role="button" aria-label="Comenzar">
+    <div class="intro-heart" id="introHeart"><span class="ihb"></span></div>
+    <div class="intro-hint" id="introHint">
+      <span>toca</span> <span>el</span> <span>corazón</span>
+    </div>
+  </div>
+
+  <main class="stage">
+    <section class="scene" id="scene">
+      <div class="panel">
+        <span class="eyebrow" id="eyebrow">17 · 01 · 2026</span>
+        <h1 class="headline" id="headline" data-text="Para Camila, *el amor de mi vida*."></h1>
+        <p class="body-text" id="bodyText" data-text="Si pudiera elegir un lugar seguro, sería contigo. Eres lo más bonito que tengo, y cada segundo a tu lado florece."></p>
+
+        <div class="counter-card" id="counterCard">
+          <p class="counter-label">Te amo desde hace</p>
+          <div class="counter-grid">
+            <div class="counter-cell"><span class="counter-num" id="cDays">0</span><span class="counter-unit">días</span></div>
+            <div class="counter-cell"><span class="counter-num" id="cHours">0</span><span class="counter-unit">horas</span></div>
+            <div class="counter-cell"><span class="counter-num" id="cMins">0</span><span class="counter-unit">min</span></div>
+            <div class="counter-cell"><span class="counter-num" id="cSecs">0</span><span class="counter-unit">seg</span></div>
+          </div>
+        </div>
+
+        <span class="signature" id="signature">— y siempre tuyo</span>
+      </div>
+
+      <div class="tree-zone" id="treeZone">
+        <svg class="tree-svg" id="treeSvg" viewBox="0 0 400 600" preserveAspectRatio="xMidYMax meet" aria-hidden="true"></svg>
+        <div class="ground" id="ground"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script>
+    /* ===========================================================
+       Romantic GSAP scene · v2 for Camila
+       =========================================================== */
+    const intro = document.getElementById('intro');
+    const introHeart = document.getElementById('introHeart');
+    const introHint = document.getElementById('introHint');
+    const scene = document.getElementById('scene');
+    const headline = document.getElementById('headline');
+    const bodyText = document.getElementById('bodyText');
+    const eyebrow = document.getElementById('eyebrow');
+    const counterCard = document.getElementById('counterCard');
+    const signature = document.getElementById('signature');
+    const treeZone = document.getElementById('treeZone');
+    const treeSvg = document.getElementById('treeSvg');
+    const ground = document.getElementById('ground');
+
+    /* ---------- Background ---------- */
+    function buildStars() {
+      const container = document.getElementById('stars');
+      const count = window.innerWidth < 700 ? 60 : 110;
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('span');
+        s.className = 'star';
+        const size = Math.random() * 2 + 1;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.opacity = (Math.random() * 0.6 + 0.2).toFixed(2);
+        container.appendChild(s);
+        gsap.to(s, {
+          opacity: '+=0.4',
+          duration: 1.4 + Math.random() * 2.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: Math.random() * 2,
+        });
+      }
+    }
+
+    function buildBokeh() {
+      const container = document.getElementById('bokeh');
+      const count = window.innerWidth < 700 ? 14 : 22;
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'bokeh-dot';
+        const size = 10 + Math.random() * 30;
+        dot.style.width = size + 'px';
+        dot.style.height = size + 'px';
+        dot.style.left = Math.random() * 100 + '%';
+        dot.style.top = Math.random() * 100 + '%';
+        dot.style.opacity = (Math.random() * 0.5 + 0.2).toFixed(2);
+        container.appendChild(dot);
+        gsap.to(dot, {
+          y: (Math.random() * 80 - 40),
+          x: (Math.random() * 60 - 30),
+          duration: 6 + Math.random() * 6,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        });
+      }
+    }
+
+    /* ---------- Intro animation ---------- */
+    function animateIntro() {
+      gsap.set(introHeart, { scale: 0.6, opacity: 0 });
+      const hintSpans = introHint.querySelectorAll('span');
+      gsap.set(hintSpans, { y: 18, opacity: 0 });
+
+      const tl = gsap.timeline();
+      tl.to(introHeart, { scale: 1, opacity: 1, duration: 0.9, ease: 'elastic.out(1, 0.55)' })
+        .to(introHeart, {
+          scale: 1.08,
+          duration: 0.9,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        }, 0.9)
+        .to(hintSpans, {
+          y: 0,
+          opacity: 0.85,
+          duration: 0.55,
+          stagger: 0.08,
+          ease: 'power2.out',
+        }, 0.4);
+    }
+
+    /* ---------- Build SVG tree ---------- */
+    /*
+      We hand-craft a romantic tree as a series of SVG paths.
+      Each path will be drawn via stroke-dashoffset.
+      Tips: a list of {x, y} where blooms will appear.
+    */
+    function makeTreePath(x1, y1, c1x, c1y, c2x, c2y, x2, y2, width) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
+      path.setAttribute('d', d);
+      path.setAttribute('stroke-width', width);
+      return { path, end: { x: x2, y: y2 } };
+    }
+
+    function buildTree() {
+      treeSvg.innerHTML = '';
+      // Trunk and branches as cubic curves
+      const segs = [];
+      // Trunk
+      segs.push(makeTreePath(200, 600, 192, 500, 210, 420, 200, 360, 18));
+      // Main left/right
+      segs.push(makeTreePath(200, 380, 180, 350, 140, 320, 110, 290, 10));
+      segs.push(makeTreePath(200, 380, 220, 350, 260, 320, 290, 290, 10));
+      // Upward main
+      segs.push(makeTreePath(200, 360, 195, 320, 200, 280, 200, 240, 11));
+      // Secondary branches
+      segs.push(makeTreePath(110, 290, 90, 270, 80, 250, 65, 220, 6));
+      segs.push(makeTreePath(110, 290, 100, 260, 95, 230, 90, 195, 6));
+      segs.push(makeTreePath(290, 290, 310, 270, 320, 250, 335, 220, 6));
+      segs.push(makeTreePath(290, 290, 300, 260, 305, 230, 310, 195, 6));
+      segs.push(makeTreePath(200, 240, 175, 215, 155, 195, 135, 170, 6));
+      segs.push(makeTreePath(200, 240, 225, 215, 245, 195, 265, 170, 6));
+      segs.push(makeTreePath(200, 240, 200, 210, 198, 180, 195, 145, 6));
+      // Tertiary twigs from secondary tips
+      segs.push(makeTreePath(65, 220, 50, 200, 40, 180, 30, 160, 3.5));
+      segs.push(makeTreePath(65, 220, 60, 195, 55, 175, 50, 150, 3.5));
+      segs.push(makeTreePath(90, 195, 80, 175, 75, 155, 70, 130, 3.5));
+      segs.push(makeTreePath(90, 195, 95, 170, 92, 145, 90, 120, 3.5));
+      segs.push(makeTreePath(335, 220, 350, 200, 360, 180, 370, 160, 3.5));
+      segs.push(makeTreePath(335, 220, 340, 195, 345, 175, 350, 150, 3.5));
+      segs.push(makeTreePath(310, 195, 320, 175, 325, 155, 330, 130, 3.5));
+      segs.push(makeTreePath(310, 195, 305, 170, 308, 145, 310, 120, 3.5));
+      segs.push(makeTreePath(135, 170, 125, 150, 120, 130, 115, 110, 3));
+      segs.push(makeTreePath(135, 170, 145, 150, 150, 130, 155, 105, 3));
+      segs.push(makeTreePath(265, 170, 275, 150, 280, 130, 285, 110, 3));
+      segs.push(makeTreePath(265, 170, 255, 150, 250, 130, 245, 105, 3));
+      segs.push(makeTreePath(195, 145, 180, 125, 175, 105, 170, 85, 3));
+      segs.push(makeTreePath(195, 145, 210, 125, 215, 105, 220, 85, 3));
+
+      // Apply gradient color hints to thicker = darker
+      segs.forEach((seg, i) => {
+        seg.path.setAttribute('stroke', i === 0 ? '#48281a' : (i < 4 ? '#5a3320' : '#6a3f29'));
+        treeSvg.appendChild(seg.path);
+      });
+
+      return segs;
+    }
+
+    function preparePathDraw(segs) {
+      segs.forEach((seg) => {
+        const len = seg.path.getTotalLength();
+        seg.path.style.strokeDasharray = len;
+        seg.path.style.strokeDashoffset = len;
+        seg.length = len;
+      });
+    }
+
+    /* ---------- Bloom (heart leaves) ---------- */
+    const LEAF_PALETTES = [
+      ['#ff5a85', '#b62049'],
+      ['#ff7aa2', '#c93f6b'],
+      ['#ff95b6', '#d75f81'],
+      ['#ffb3c8', '#e07ea0'],
+      ['#ff3d68', '#9c1235'],
+      ['#ffd9a8', '#e6a36a'],
+    ];
+
+    function placeBlooms(segs) {
+      // generate bloom positions clustered around branch endpoints + along upper branches
+      const tips = segs.slice(1).map((s) => s.end);
+      // additional points along tertiary branches: sample t = 0.5
+      const samples = [];
+      segs.slice(4).forEach((seg) => {
+        const len = seg.path.getTotalLength();
+        for (let k = 0; k < 3; k++) {
+          const p = seg.path.getPointAtLength(len * (0.4 + k * 0.25));
+          samples.push({ x: p.x, y: p.y });
+        }
+      });
+      const points = [...tips, ...samples];
+
+      // synthetic cloud above tree
+      for (let i = 0; i < 70; i++) {
+        const cx = 200 + (Math.random() * 2 - 1) * 150;
+        const cy = 130 + (Math.random() * 2 - 1) * 90;
+        points.push({ x: cx, y: cy });
+      }
+      // inner fill
+      for (let i = 0; i < 40; i++) {
+        const cx = 200 + (Math.random() * 2 - 1) * 100;
+        const cy = 180 + (Math.random() * 2 - 1) * 60;
+        points.push({ x: cx, y: cy });
+      }
+
+      // Convert SVG coords to pixel positions relative to tree-zone
+      const zoneRect = treeZone.getBoundingClientRect();
+      const svgRect = treeSvg.getBoundingClientRect();
+      const scaleX = svgRect.width / 400;
+      const scaleY = svgRect.height / 600;
+      const offsetX = svgRect.left - zoneRect.left;
+      const offsetY = svgRect.top - zoneRect.top;
+
+      const blooms = [];
+      points.forEach((p) => {
+        const el = document.createElement('div');
+        el.className = 'bloom';
+        const colors = LEAF_PALETTES[Math.floor(Math.random() * LEAF_PALETTES.length)];
+        const size = 12 + Math.random() * 14;
+        el.style.setProperty('--c1', colors[0]);
+        el.style.setProperty('--c2', colors[1]);
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        // jitter
+        const jx = (Math.random() * 2 - 1) * 14;
+        const jy = (Math.random() * 2 - 1) * 14;
+        const px = offsetX + p.x * scaleX + jx;
+        const py = offsetY + p.y * scaleY + jy;
+        el.style.left = px + 'px';
+        el.style.top = py + 'px';
+        el.appendChild(Object.assign(document.createElement('span'), { className: 'b' }));
+        treeZone.appendChild(el);
+        blooms.push(el);
+      });
+      return blooms;
+    }
+
+    /* ---------- Text reveal helpers ---------- */
+    function buildHeadline() {
+      const raw = headline.dataset.text || '';
+      // Marked emphasis: words between * *
+      const parts = raw.split(/(\*[^*]+\*)/);
+      headline.innerHTML = '';
+      const wordsAll = [];
+      parts.forEach((chunk) => {
+        if (!chunk) return;
+        const isEm = chunk.startsWith('*') && chunk.endsWith('*');
+        const text = isEm ? chunk.slice(1, -1) : chunk;
+        const tokens = text.split(/(\s+)/);
+        tokens.forEach((t) => {
+          if (!t) return;
+          if (/^\s+$/.test(t)) {
+            headline.appendChild(document.createTextNode(t));
+            return;
+          }
+          const span = document.createElement('span');
+          span.className = 'word';
+          const inner = document.createElement('span');
+          inner.className = 'word-inner';
+          inner.textContent = t;
+          if (isEm) {
+            const emEl = document.createElement('em');
+            emEl.appendChild(inner);
+            span.appendChild(emEl);
+          } else {
+            span.appendChild(inner);
+          }
+          headline.appendChild(span);
+          wordsAll.push(inner);
+        });
+      });
+      return wordsAll;
+    }
+
+    function buildBodyText() {
+      const raw = bodyText.dataset.text || '';
+      bodyText.innerHTML = '';
+      const chars = [];
+      for (let i = 0; i < raw.length; i++) {
+        const ch = raw[i];
+        if (ch === ' ') {
+          bodyText.appendChild(document.createTextNode(' '));
+          continue;
+        }
+        const s = document.createElement('span');
+        s.className = 'char';
+        s.textContent = ch;
+        bodyText.appendChild(s);
+        chars.push(s);
+      }
+      return chars;
+    }
+
+    /* ---------- Counter ---------- */
+    const startDate = new Date(2025, 10, 7, 0, 0, 0, 0);
+    const cDays = document.getElementById('cDays');
+    const cHours = document.getElementById('cHours');
+    const cMins = document.getElementById('cMins');
+    const cSecs = document.getElementById('cSecs');
+    let lastVals = { d: -1, h: -1, m: -1, s: -1 };
+
+    function pop(el) {
+      gsap.fromTo(el,
+        { scale: 1.18, color: '#ffd9a8' },
+        { scale: 1, color: '#ffffff', duration: 0.55, ease: 'power2.out' });
+    }
+
+    function updateCounter() {
+      const now = new Date();
+      let diff = Math.max(0, now - startDate);
+      const dayMs = 86400000;
+      const hourMs = 3600000;
+      const minuteMs = 60000;
+      const d = Math.floor(diff / dayMs); diff %= dayMs;
+      const h = Math.floor(diff / hourMs); diff %= hourMs;
+      const m = Math.floor(diff / minuteMs); diff %= minuteMs;
+      const s = Math.floor(diff / 1000);
+      if (d !== lastVals.d) { cDays.textContent = d; pop(cDays); lastVals.d = d; }
+      if (h !== lastVals.h) { cHours.textContent = h; pop(cHours); lastVals.h = h; }
+      if (m !== lastVals.m) { cMins.textContent = m; pop(cMins); lastVals.m = m; }
+      if (s !== lastVals.s) { cSecs.textContent = s; pop(cSecs); lastVals.s = s; }
+    }
+
+    /* ---------- Floating hearts loop ---------- */
+    function spawnFloatingHeart() {
+      const el = document.createElement('div');
+      el.className = 'floating-heart';
+      const fb = document.createElement('span');
+      fb.className = 'fb';
+      el.appendChild(fb);
+      const palette = LEAF_PALETTES[Math.floor(Math.random() * LEAF_PALETTES.length)];
+      el.style.setProperty('--fc', palette[0]);
+      const size = 8 + Math.random() * 10;
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      const startX = Math.random() * window.innerWidth;
+      el.style.left = startX + 'px';
+      el.style.top = (-30) + 'px';
+      document.body.appendChild(el);
+      gsap.fromTo(el,
+        { y: -40, opacity: 0, rotate: -45 },
+        {
+          y: window.innerHeight + 60,
+          x: (Math.random() * 200 - 100),
+          opacity: 0.9,
+          rotate: -45 + (Math.random() * 80 - 40),
+          duration: 8 + Math.random() * 6,
+          ease: 'none',
+          onComplete: () => el.remove(),
+        });
+      gsap.to(el, { opacity: 0, duration: 1.5, delay: 6 + Math.random() * 4 });
+    }
+
+    let floatLoopId = null;
+    function startFloatingHearts() {
+      if (floatLoopId) return;
+      floatLoopId = setInterval(spawnFloatingHeart, 900);
+    }
+
+    /* ---------- Master timeline ---------- */
+    let sequenceStarted = false;
+
+    function runMainSequence() {
+      if (sequenceStarted) return;
+      sequenceStarted = true;
+
+      const segs = buildTree();
+      preparePathDraw(segs);
+      const words = buildHeadline();
+      const chars = buildBodyText();
+      // Prepare initial states
+      gsap.set(words, { yPercent: 110 });
+      gsap.set(chars, { opacity: 0, y: 12 });
+
+      const tl = gsap.timeline();
+
+      // 1. Intro out: heart shrinks and explodes
+      tl.to(introHint, { opacity: 0, y: -10, duration: 0.4, ease: 'power2.in' })
+        .to(introHeart, {
+          scale: 1.5,
+          duration: 0.45,
+          ease: 'power2.in',
+        }, '<')
+        .to(introHeart, {
+          scale: 0,
+          opacity: 0,
+          duration: 0.55,
+          ease: 'power3.in',
+        })
+        .to(intro, { opacity: 0, duration: 0.45, ease: 'power2.out', onComplete: () => intro.style.display = 'none' }, '<0.1');
+
+      // 2. Reveal scene container
+      tl.to(scene, { opacity: 1, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+
+      // 3. Draw trunk + branches with stagger
+      tl.add(() => {
+        gsap.set(ground, { scaleX: 0 });
+      });
+      tl.to(ground, { scaleX: 1, duration: 0.9, ease: 'power2.out' }, '-=0.3');
+
+      // Draw segments sequentially: trunk first, then branches
+      segs.forEach((seg, i) => {
+        tl.to(seg.path, {
+          strokeDashoffset: 0,
+          duration: i === 0 ? 0.9 : (i < 4 ? 0.55 : 0.4),
+          ease: i === 0 ? 'power2.out' : 'power1.out',
+        }, i === 0 ? '-=0.3' : '-=0.32');
+      });
+
+      // 4. Place blooms but invisible, then stagger bloom in
+      tl.add(() => {
+        const blooms = placeBlooms(segs);
+        // expose for later (falling loop)
+        window.__blooms = blooms;
+        gsap.to(blooms, {
+          scale: 1,
+          rotate: -45,
+          duration: 0.9,
+          ease: 'elastic.out(1, 0.55)',
+          stagger: { each: 0.012, from: 'random' },
+        });
+        // gentle floating sway loop
+        blooms.forEach((b) => {
+          gsap.to(b, {
+            y: '-=4',
+            duration: 1.6 + Math.random() * 1.4,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: Math.random() * 1.5,
+          });
+        });
+      });
+
+      tl.to({}, { duration: 1.4 });
+
+      // 5. Reveal text - eyebrow, headline (word stagger), body (char stagger), counter, signature
+      tl.to(eyebrow, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=1')
+        .to(words, {
+          yPercent: 0,
+          duration: 0.85,
+          stagger: 0.06,
+          ease: 'power3.out',
+        }, '-=0.6')
+        .to(chars, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.012,
+          ease: 'power2.out',
+        }, '-=0.4')
+        .to(counterCard, {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power2.out',
+        }, '-=0.3')
+        .to(signature, {
+          opacity: 1,
+          duration: 0.7,
+          ease: 'power2.out',
+        }, '-=0.2');
+
+      // 6. Begin falling hearts loop after a small pause
+      tl.add(() => {
+        startFallingLeaves();
+        startFloatingHearts();
+      }, '+=0.4');
+    }
+
+    /* ---------- Leaves falling occasionally ---------- */
+    let fallId = null;
+    function startFallingLeaves() {
+      if (fallId) return;
+      fallId = setInterval(() => {
+        const pool = (window.__blooms || []).filter((b) => !b.dataset.fallen && Math.random() < 0.4);
+        if (!pool.length) return;
+        const picks = pool.sort(() => Math.random() - 0.5).slice(0, 2);
+        picks.forEach((el) => {
+          el.dataset.fallen = '1';
+          const zoneRect = treeZone.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          const groundY = (zoneRect.bottom - 30) - elRect.top;
+          const driftX = (Math.random() * 160 - 80);
+          const dur = 2.4 + Math.random() * 2.2;
+          gsap.to(el, {
+            x: driftX,
+            y: groundY,
+            rotate: -45 + (Math.random() * 280 - 140),
+            duration: dur,
+            ease: 'power1.in',
+            onComplete: () => el.classList.add('fallen'),
+          });
+        });
+      }, 900);
+    }
+
+    /* ---------- Init ---------- */
+    buildStars();
+    buildBokeh();
+    animateIntro();
+
+    let kickoff = () => {
+      runMainSequence();
+      intro.removeEventListener('pointerdown', kickoff);
+      intro.removeEventListener('touchstart', kickoff);
+      intro.removeEventListener('click', kickoff);
+      window.removeEventListener('keydown', kickoff);
+    };
+    intro.addEventListener('pointerdown', kickoff, { passive: true });
+    intro.addEventListener('touchstart', kickoff, { passive: true });
+    intro.addEventListener('click', kickoff);
+    window.addEventListener('keydown', kickoff);
+
+    // Auto-kick after a few seconds for accessibility
+    setTimeout(() => { if (!sequenceStarted) kickoff(); }, 4500);
+
+    // Counter ticks regardless of intro state
+    updateCounter();
+    setInterval(updateCounter, 250);
+
+    // Re-sync blooms on resize (re-place them)
+    let resizeT = null;
+    window.addEventListener('resize', () => {
+      if (!window.__blooms) return;
+      clearTimeout(resizeT);
+      resizeT = setTimeout(() => {
+        // Simple strategy: remove and rebuild blooms in new positions
+        window.__blooms.forEach((b) => b.remove());
+        const segs = Array.from(treeSvg.querySelectorAll('path')).map((p) => {
+          const len = p.getTotalLength();
+          const end = p.getPointAtLength(len);
+          return { path: p, end };
+        });
+        const blooms = placeBlooms(segs);
+        window.__blooms = blooms;
+        gsap.set(blooms, { scale: 1, rotate: -45 });
+      }, 250);
+    });
+  </script>
+</body>
+</html>
